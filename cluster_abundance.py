@@ -32,7 +32,7 @@ def create_custom_db():
                     print(line)
     files_str=",".join(clusters)
     command =f"bowtie2-build --threads 5 {files_str} {rep_folder}reps_bt_index"
-    #os.system(command)
+    os.system(command)
 
 
 def map_and_filter(sample,read1,read2,bt2index,file):
@@ -42,11 +42,11 @@ def map_and_filter(sample,read1,read2,bt2index,file):
     output = sample_folder + "cluster_remapping_" + sample + ".sam"
     command=f"bowtie2 -x {bt2index} -1 {read1} -2 {read2} -p {threads} -S {output_tmp}"
     #print(command)
-    #os.system(command)
+    os.system(command)
     command = f"samtools view -@ 10 -G 4 {output_tmp} >> {output}"
     #print(command)
-    #os.system(command)
-    #os.system(f"rm {output_tmp}")
+    os.system(command)
+    os.system(f"rm {output_tmp}")
     return output
 
 
@@ -166,7 +166,7 @@ def mapping_queue():
     o1.close()
 
 
-#create_custom_db()
+create_custom_db()
 o= open(config.outfolder + "cluster_abundance_list.dump", "w")
 o.close()
 mapping_queue()
