@@ -99,7 +99,7 @@ def retax_kraken():
             kraken_out_report = cl_path + cluster + ".kreport.tsv"
             command = kraken_path + " --db " + kraken_db + " --threads " + str(
                 threads) + " --report " + kraken_out_report + " " + infasta
-            #os.system(command)
+            os.system(command)
             genus, perc, genus_id = indentify_genus(kraken_out_report, cluster)
             patric_JSON_maker(cluster, genus, genus_id)
 
@@ -108,7 +108,7 @@ def patric_JSON_maker(cluster, genus, gen_id):
     contigs_file_local = f"{infolder}/{cluster}/{cluster}.fasta"
     contigs_file_remote = f"/mananbshah@patricbrc.org/unidue/infolder/{cluster}.fasta"
     command = ("p3-cp " + contigs_file_local + " ws:" + contigs_file_remote + " -m fasta=contigs")
-    # os.system(command)
+    os.system(command)
     json_file_path = f"{infolder}/{cluster}/{cluster}_particCGA.json"
     json_content = {
         "genome_size": "5M",
@@ -239,10 +239,10 @@ def patric_retrieve_sort():
         newhtml = cluster_dir + "/" + cluster + "_patricOut.html"
         patric_html_onpc = cluster_dir + "/FullGenomeReport.html"
         command = f"p3-cp {patric_html_onserver} {cluster_dir}"
-        # os.system(command)
+        os.system(command)
         command = f"mv {patric_html_onpc} {newhtml}"
         patric_submissions[cluster] = extract_from_patric(newhtml)
-        # os.system(command)
+        os.system(command)
     finalfile = infolder + "clusters.tsv"
     tmpfile = infolder + "clusters_tmp.tsv"
     o=open(finalfile,"w")
@@ -264,9 +264,9 @@ def patric_retrieve_sort():
 
 
 
-# cluster_reassembly("average")
-# summarize_reassembly()
-# tp.tax_initiate(taxdumpdir)
-# retax_kraken()
-# patric_sandq()
+cluster_reassembly("average")
+summarize_reassembly()
+tp.tax_initiate(taxdumpdir)
+retax_kraken()
+patric_sandq()
 patric_retrieve_sort()
