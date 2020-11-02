@@ -1,2 +1,6 @@
-# MAGs
-Scripts for carryong out ,metagenome assisted genomics
+#MAGs
+
+*Scripts for carrying out Metagenome Assembled Genomics studies*
+
+
+more Information to follow soon
