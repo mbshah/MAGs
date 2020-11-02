@@ -164,6 +164,21 @@ def mapping_queue():
             o1.write(str(value)+"\t")
         o1.write("\n")
     o1.close()
+    o2 = open(config.outfolder + "cluster_abundance_profile_transformed.tsv", "w")
+    clusters = sorted(myclusters)
+    o2.write("abundance\t")
+    for cluster in clusters:
+        o2.write(cluster + "\t")
+    o2.write("\n")
+    for sample in sorted(samples):
+        o2.write(sample + "\t")
+        for cluster in sorted(clusters):
+            value = 0
+            if cluster in cluster_profile[sample]:
+                value = cluster_profile[sample][cluster]
+            o2.write(str(value) + "\t")
+        o2.write("\n")
+    o2.close()
 
 
 create_custom_db()

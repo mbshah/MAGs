@@ -1,4 +1,5 @@
 curation_file = "Assembled_Metagenomes//Curated_MAGs.tsv.txt"
+sample_metadata = "Assembled_Metagenomes/CED91220.tsv"
 raw_fastq="/mnt/xio/botany/mbs_workfolder/wmg_raw/"
 outfolder= "outfile/"
 fasta_folder="s_fasta/"

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# import os
+import os
 import files as f
 from pathlib import Path
 
@@ -127,8 +127,8 @@ def extract_from_fasta(scaff_dict, source_fasta):
                 x.close()
                 # command1 = "echo \\>" + m_temp + " >>" + scaff_dict[m_temp]
                 # command2 = "echo " + seq + " >>" + scaff_dict[m_temp]
-                os.system(command1)
-                os.system(command2)
+                #os.system(command1)
+                #os.system(command2)
 
 
 def curation_mem(cf):

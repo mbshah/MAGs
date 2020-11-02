@@ -58,3 +58,6 @@ rule cluster_abundance:
     input:f.raw_fastq, f.outfolder + "clusters" + postfix +"_"+ method+ "/clusters.tsv"
     output: f.outfolder+"cluster_abundance_profile.tsv", f.outfolder+"cluster_abundance_list.dump"
     shell:'echo cluster_abundance.py'
+
+rule post_process_1:
+    input:

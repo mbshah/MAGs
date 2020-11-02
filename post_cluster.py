@@ -199,7 +199,7 @@ def extract_from_patric(html_file):
                 if str(child.text).__contains__("Based"):
                     text = str(child.text).replace("\n", "")
                     text = " ".join(text.split())
-                    ret_dict["quality"] = qlty_c.search(text).group(1)
+                    ret_dict["Patric_Quality"] = qlty_c.search(text).group(1)
     for x in soup.find_all('table'):
         s3 = BeautifulSoup(str(x), 'html.parser')
         for child in s3.recursiveChildGenerator():
@@ -228,12 +228,14 @@ def patric_retrieve_sort():
     for dirpath, dirnames, filenames in os.walk(infolder):
         for filename in [f for f in filenames if f.endswith(".json")]:
             patric_submissions[os.path.basename(dirpath)] = (dirpath, filename)
-
+    genus=""
     for cluster in patric_submissions:
         cluster_dir = patric_submissions[cluster][0]
         json_filename = "/".join(patric_submissions[cluster])
         with open(json_filename, "r") as json_file:
             data = json.load(json_file)
+        genus_id=data["taxonomy_id"]
+        genus=f"{tp.names[genus_id]}({genus_id})"
         patric_html_onserver = str(
             "ws:" + data["output_path"] + "/." + data["output_file"] + "/FullGenomeReport.html").replace(" ", "\ ")
         newhtml = cluster_dir + "/" + cluster + "_patricOut.html"
@@ -241,12 +243,14 @@ def patric_retrieve_sort():
         command = f"p3-cp {patric_html_onserver} {cluster_dir}"
         os.system(command)
         command = f"mv {patric_html_onpc} {newhtml}"
-        patric_submissions[cluster] = extract_from_patric(newhtml)
         os.system(command)
+        patric_submissions[cluster] = extract_from_patric(newhtml)
+        patric_submissions[cluster]["Kraken_Genus"]=genus
     finalfile = infolder + "clusters.tsv"
     tmpfile = infolder + "clusters_tmp.tsv"
     o=open(finalfile,"w")
-    pat_dict_headers.insert(0,"quality")
+    pat_dict_headers.insert(0,"Patric_Quality")
+    pat_dict_headers.insert(0, "Kraken_Genus")
     with open(tmpfile,"r") as clusterfile:
         header=str(next(clusterfile)).strip()+"\t"+"\t".join(pat_dict_headers)+"\n"
         o.write(header)
@@ -264,9 +268,9 @@ def patric_retrieve_sort():
 
 
 
-cluster_reassembly("average")
-summarize_reassembly()
-tp.tax_initiate(taxdumpdir)
-retax_kraken()
-patric_sandq()
-patric_retrieve_sort()
+#cluster_reassembly("average")
+#summarize_reassembly()
+#tp.tax_initiate(taxdumpdir)
+#retax_kraken()
+#patric_sandq()
+#patric_retrieve_sort()

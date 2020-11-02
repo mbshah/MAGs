@@ -10,7 +10,7 @@ def checkm_summary(outfolder, sample):
     checkm_out = outfolder + "/" + sample + "/" + "/checkm_out/"
     checkm_in = outfolder + "/" + sample + "/bins"
     checkm_tsv = outfolder + "/" + sample + "/checkm.tsv"
-    os.system("checkm lineage_wf -t 8 -x fasta --tab_table -q " + checkm_in + " " + checkm_out + " >" + checkm_tsv)
+    os.system(f"checkm lineage_wf -t 8 -x fasta --tab_table -q {checkm_in} {checkm_out} >{checkm_tsv}")
 
 
 def walklevel(some_dir, level=1):
