@@ -119,13 +119,13 @@ def run_kofamkoala():
         kofam_exe=f"{kofam_folder}exec_annotation"
         command=f"{kofam_exe} -c {config_file} -f detail-tsv -o {kofam_raw_output} {gene_pred_faa}"
         print(command)
-        #os.system(command)
+        os.system(command)
         command=f"head -n1 {kofam_raw_output} > {kofam_filtered_output}"
         print (command)
-        #os.system(command)
+        os.system(command)
         command=f'grep "^*" {kofam_raw_output} >>{kofam_filtered_output}'
         print (command)
-        #os.system(command)
+        os.system(command)
 
 
 def run_checkm():
