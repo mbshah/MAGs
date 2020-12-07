@@ -6,7 +6,7 @@
 # 4. growthpred
 import subprocess
 
-import files as config
+import config as config
 import os
 
 infolder = config.outfolder + "clusters" + config.postfix + "_" + config.method + "/"

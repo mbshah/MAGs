@@ -11,6 +11,7 @@ max_compl = 100
 contam_col = 12  # zero index
 min_contam = 0
 max_contam = 10
+taxdumpdir = "/home/hb0358/PycharmProjects/mbs_general/ancilary/new_taxdump"
 
 files_dict={
 "EULd_A251SC":"Assembled_Metagenomes/refined_bins/EULd_A251SC.tsv",

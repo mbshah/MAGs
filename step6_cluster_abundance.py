@@ -1,5 +1,5 @@
 import os
-import files as config
+import config as config
 import fileinput
 import concurrent.futures
 

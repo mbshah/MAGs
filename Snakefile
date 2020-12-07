@@ -24,12 +24,12 @@ rule standardise:
     input:
          cur=f.curation_file
     output:f.outfolder + "summary_all.tsv"
-    shell:'echo standardise.py {input.cur}'
+    shell:'echo step1_standardise.py {input.cur}'
 
 rule run_checkm:
     input:f.outfolder + "summary_all.tsv"
     output: f.outfolder + "/all_sample_summary.tsv"
-    shell:'echo run_checkm.py'
+    shell:'echo step2_run_checkm.py'
 
 rule tax_profiler:
     input:f.outfolder + "all_sample_summary.tsv"
@@ -41,18 +41,18 @@ rule tax_profiler:
           f.outfolder + tax_profile_out_DIR + "/l5_family.tsv",
           f.outfolder + tax_profile_out_DIR + "/l6_genus.tsv",
           f.outfolder + tax_profile_out_DIR + "/l7_species.tsv"
-    shell:"echo tax_profiler.py " + f.outfolder + tax_profile_out_DIR
+    shell:"echo step3_tax_profiler.py " + f.outfolder + tax_profile_out_DIR
 
 rule cluster_bins:
     input:f.outfolder + "all_sample_summary.tsv"
     output:f.outfolder + "ani_results"+postfix+".tsv", f.outfolder + "clusters" + postfix +"_"+ method+ "/clusters.tsv"
     threads:5
-    shell:'echo clusterbins.py {threads} {input} {output}'
+    shell:'echo step4_clusterbins.py {threads} {input} {output}'
 
 rule post_cluster:
     input: f.outfolder + "clusters" + postfix +"_"+ method+ "/clusters.tsv"
     output: f.outfolder + "clusters" + postfix +"_"+ method+ "/clusters.tsv"
-    shell: 'echo post_cluster.py'
+    shell: 'echo step5_post_cluster.py'
 
 rule cluster_abundance:
     input:f.raw_fastq, f.outfolder + "clusters" + postfix +"_"+ method+ "/clusters.tsv"

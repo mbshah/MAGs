@@ -2,7 +2,7 @@
 import os
 from pathlib import Path
 import re
-import files as config
+import config as config
 import sys
 import subprocess
 
@@ -19,7 +19,7 @@ max_contam = config.max_contam
 taxaofinterest = ()  # comma seperated list of taxa of interest
 outdir = config.outfolder + "/profiles_checkm_90_10"  # where output will be saved
 if len(sys.argv) > 1: outdir = sys.argv[1]
-taxdumpdir = "/home/hb0358/PycharmProjects/mbs_general/ancilary/new_taxdump"  # must download latest tax dump and extract it and provide path here
+taxdumpdir = config.taxdumpdir  # must download latest tax dump and extract it and provide path here
 
 # empty variables
 lineage_db = {}
@@ -34,7 +34,7 @@ lin_req_dict = {"Bacteria": ["superkingdom", "phylum", "class", "order", "family
                 "Viruses": ["superkingdom", "order", "family", "genus", "species"],
                 "Eukaryota": ["superkingdom", "kingdom", "phylum", "class", "order", "family", "species"],
                 "Archaea": ["superkingdom", "phylum", "class", "order", "family", "genus", "species"],
-                "metagenomes": ["no rank", "no rank", "no rank", "no rank", "no rank", "no rank", "no rank"]}
+                "metagenomes": ["no rank", "no rank", "species"]}
 
 
 # defining Functions
@@ -120,8 +120,15 @@ def taxonomy_refiner(tax, db):
     try:
         mysk = names[taxID_lin[1]]
     except:
-        print(str(tax) + "\t" + db)
+        try:
+            mysk=names[taxID_lin[0]]
+        except:
+            print(str(names[tax]) + " in " + db+ " is not a regular superkingdom")
+            exit()
+    if mysk in lin_req_dict:pass
+    else: mysk=names[taxID_lin[0]]
     named_lineage = {}
+    #print(taxID_lin)
     for levelID in taxID_lin:
         if nodes[levelID] in lin_req_dict[mysk]:
             named_lineage[nodes[levelID]] = names[levelID]

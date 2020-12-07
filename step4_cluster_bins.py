@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import files as config
+import config as config
 import re
 import subprocess
 import multiprocessing as mp

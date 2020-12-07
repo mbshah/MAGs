@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import os
-import files as f
+import config as f
 
 files_dict = dict(f.files_dict)
 
