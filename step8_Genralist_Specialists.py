@@ -78,6 +78,7 @@ def profile_to_files():
         supkm_folder=kraken_profile_folder+"/"+superkingdom
         if superkingdom in profiles:
             Path(supkm_folder).mkdir(parents=True, exist_ok=True)
+            prefix=1
             for lev in tp.lin_req_dict[superkingdom]:
                 if lev=="superkingdom":
                     #print(profiles[superkingdom][lev])
@@ -87,7 +88,8 @@ def profile_to_files():
                         for sk in profiles[superkingdom][lev][samp]:
                             superkingdom_counts[samp][sk]=profiles[superkingdom][lev][samp][sk]
                 else:
-                    outfile = supkm_folder + "/" + lev +".tsv"
+                    outfile = supkm_folder + "/" + "l"+str(prefix)+"_"+lev + ".tsv"
+                    prefix=prefix+1
                     headers = "taxa/sample\t" + "\t".join(sorted(samples)) + "\n"
                     out = open(outfile, "w")
                     out.write(headers)
@@ -117,6 +119,41 @@ def profile_to_files():
                       "\t"+str(total_scaffolds)+"\n")
 
 
-kraken_profilize()
-profile_to_files()
-#print(profiles["Bacteria"]["phylum"]['EULs_S301BU'].keys())
+def log_otu_abundance_plot():
+    import matplotlib
+    import matplotlib.pyplot as plt
+    import numpy as np
+    normalized_file=kraken_profile_folder+"/Bacteria/l6_species_normalized_deseq2.tsv"
+    count_array=[]
+    exists_array=[]
+    with open(normalized_file,"r") as nfile:
+        header=next(nfile)
+        for line in nfile:
+            entry=line.split("\t")
+            otu_name=entry.pop(0)
+            total_count=0
+            exists_count=0
+            for value in entry:
+                value=float(value)
+                if value>0:
+                    total_count=total_count+value
+                    exists_count=exists_count+1
+            avg_count=total_count/exists_count
+            log_total_count=np.log(total_count)
+            log_avg_count=np.log(avg_count)
+            log_exists_count=np.log(exists_count)
+            count_array.append(log_avg_count)
+            exists_array.append(log_exists_count)
+            #print(otu_name+":\t"+str(log_exists_count)+"\t"+str(log_total_count)+"\t"+str(log_avg_count)+"\n")
+    fig,ax=plt.subplots()
+    ax.scatter(count_array, exists_array,marker=".",color="red")
+    plt.xlabel("log of abundance")
+    plt.ylabel("log of occurrence")
+    plt.gca().invert_xaxis()
+    fig.savefig(kraken_profile_folder+"/Bacteria/l6_species_normalized_deseq2_pyplot.png")
+    plt.show()
+
+
+#kraken_profilize()
+#profile_to_files()
+log_otu_abundance_plot()
