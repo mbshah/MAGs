@@ -137,11 +137,8 @@ def run_checkm():
     os.system(command)
 
 
-def gen_spec_listing():
-    profile=""
-
 load_data()
 #geneprediction_generate()
 #run_growthpred()
-run_kofamkoala()
+#run_kofamkoala()
 #run_checkm()

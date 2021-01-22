@@ -2,3 +2,8 @@
 .Rhistory
 .RData
 .Ruserdata
+nucmer.error
+out.ntref
+out.mgaps
+test.sam
+test_out.sam
