@@ -778,7 +778,7 @@ load_from_table()
 #figure_7() #sigmafactor analysis
 #figure_codons()
 ##iteration for draft 3
-#figure_codons()
+figure_codons()
 #figure_phyla_scatter()
 #figure_phyla_scatter2()
 #figure_box_plots()
