@@ -6,7 +6,7 @@
 # 4. growthpred
 import subprocess
 
-import config as config
+import files as config
 import os
 
 infolder = config.outfolder + "clusters" + config.postfix + "_" + config.method + "/"
@@ -137,8 +137,11 @@ def run_checkm():
     os.system(command)
 
 
+def gen_spec_listing():
+    profile=""
+
 load_data()
 #geneprediction_generate()
 #run_growthpred()
-#run_kofamkoala()
+run_kofamkoala()
 #run_checkm()

@@ -1,4 +1,5 @@
-import files as f
+import config as f
+import os
 
 postfix="_dastool_90_10"
 method="average"
@@ -59,5 +60,15 @@ rule cluster_abundance:
     output: f.outfolder+"cluster_abundance_profile.tsv", f.outfolder+"cluster_abundance_list.dump"
     shell:'echo cluster_abundance.py'
 
-rule post_process_1:
-    input:
+rule kraken_db_maker:
+    output: f.anciliaryfolder+"/krakendb_nt/seqid2taxid.map",f.anciliaryfolder+"/krakendb_nt/taxonomy/names.dmp"
+    shell:'kraken2_dbmaker.sh'
+
+rule kraken_assign_tax:
+    input:fasta=f.fasta_folder+"/"+"{{sample}}_min1000.fasta",database=f.anciliaryfolder+"/krakendb_nt/seqid2taxid.map" #fasta parameter can be expand()value as well, combined output has read ID which can be used to distinguish between samples in later stage
+    output: f.outfolder+"/retax_combined.kout"
+    params:
+        db=f.anciliaryfolder+"/krakendb_nt",
+        threads=f.processes
+    shell: "../tools/kraken2/kraken2 --output {output} --threads {params.threads} --db {params.db} {input.fasta}"
+

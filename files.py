@@ -1,8 +1,8 @@
 curation_file = "Assembled_Metagenomes//Curated_MAGs.tsv.txt"
 sample_metadata = "Assembled_Metagenomes/CED91220.tsv"
-scg_list_file = "Assembled_Metagenomes/SCG_list.tsv.csv"
-read_counts_file = "Assembled_Metagenomes/read_counts.tsv"
 raw_fastq="/mnt/xio/botany/mbs_workfolder/wmg_raw/"
+outfolder= "outfile/"
+fasta_folder="s_fasta/"
 method="average"
 postfix="_dastool_90_10"
 compl_col = 11  # zero index
@@ -11,11 +11,6 @@ max_compl = 100
 contam_col = 12  # zero index
 min_contam = 0
 max_contam = 10
-outfolder= "outfile/"
-fasta_folder="s_fasta/"
-taxdumpdir = "/home/hb0358/PycharmProjects/mbs_general/ancilary/new_taxdump"
-anciliaryfolder="/home/hb0358/PycharmProjects/mbs_general/ancilary"
-processes=12
 
 files_dict={
 "EULd_A251SC":"Assembled_Metagenomes/refined_bins/EULd_A251SC.tsv",

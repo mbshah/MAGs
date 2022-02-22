@@ -4,14 +4,15 @@
 # Created on: 10/12/20
 
 ###install and load_req_libraries###
-#install.packages("vegan")
-#install.packages("spaa")
-#devtools::install_github("GuillemSalazar/EcolUtils")
+install.packages("vegan")
+install.packages("spaa")
+devtools::install_github("GuillemSalazar/EcolUtils")
 library(EcolUtils)
-library(RCurl)
+#library(RCurl)
 
 ###load and prepare table###
 x<-"/home/hb0358/PycharmProjects/mbs_general/WMG/Kraken2_NT_Scaffolds_profiles/Bacteria/l6_species_normalized_deseq2.tsv"
+x<-"/home/manan/disk2/UDE/mbs_general/WMG/Kraken2_NT_Scaffolds_profiles/Bacteria/l6_species_normalized_deseq2.tsv"
 ofl<-"/home/hb0358/PycharmProjects/mbs_general/WMG/Kraken2_NT_Scaffolds_profiles/Bacteria/Genralists_Specialists/gen_spec1000.tsv"
 comm.tab<-read.table(file=x,sep="\t",row.names=1,header=TRUE,comment.char="@")
 comm.tab<-t(comm.tab)
@@ -47,7 +48,7 @@ write.table(res1000, file=ofl , sep="\t", quote=F, col.names=NA)
 ###reread modifiedfiles
 ofl2<-"/home/hb0358/PycharmProjects/mbs_general/WMG/Kraken2_NT_Scaffolds_profiles2/Bacteria/Genralists_Specialists/gen_specret.tsv"
 res_reread<-read.table(file=ofl2,sep="\t",row.names=1,header=TRUE,comment.char="@")
-levels(res1000$sign)
+levels(data3$sign)
 plot(colSums(comm.tab),colSums(comm.tab.bin)/dim(comm.tab.bin)[1],col=res_reread$Color,main = ,pch=19,log="x",xlab="Abundance",ylab="Occurrence")
 legend("bottomright",c("Gen","Spec","NS","Gen_MAG","Spec_MAG","NS_MAG"),col=cols,pch=19,inset=0.01,cex=0.7)
 

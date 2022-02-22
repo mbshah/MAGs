@@ -1,7 +1,7 @@
-import config as config
+import files as config
 from Bio import SeqIO
 import os
-import step3_tax_profiler as tp
+import tax_profiler as tp
 import json
 import time
 import re
@@ -12,8 +12,6 @@ method = config.method
 infolder = config.outfolder + "clusters" + postfix + "_" + method + "/"
 threads = 15
 taxdumpdir = "/home/hb0358/PycharmProjects/mbs_general/ancilary/new_taxdump"
-kraken_path = "~/manan_WMG/tools/kraken2/kraken2"
-kraken_db = "~/manan_WMG/ancilary/kraken_bact/"
 
 
 def cluster_reassembly(method):
@@ -85,8 +83,10 @@ def summarize_reassembly():
     o.close()
 
 
-def retax_kraken(infolder1=infolder):
-    clfolder = infolder1
+def retax_kraken():
+    kraken_path = "~/kraken2_int/kraken2"
+    kraken_db = "~/mbs_workfolder/ancilary/kraken_bact/"
+    clfolder = infolder
     cfile_in = clfolder + "clusters_tmp.tsv"
     with open(cfile_in, "r+") as c:
         header = next(c)
