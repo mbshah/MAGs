@@ -142,6 +142,12 @@ def load_from_table():
         (master_table["reassembly_size_mb"] < 4) & (master_table["reassembly_size_mb"] > 2)]
     master_table["CDS"] = master_table.CDS.apply(lambda x: int(x.replace(",", "")))
     # print(f"{max(master_table['cluster_abundance'])}\t{min(master_table['cluster_abundance'])}")
+    master_table["Kraken_Phyla2"]=master_table.Kraken_Phyla.apply(lambda x:"Proteobacteria" if x in ("Alphaproteobacteri",
+                                                                                                     "Betaproteobacteria",
+                                                                                                     "Gammaproteobacteria",
+                                                                                                     "Deltaproteobacteria",
+                                                                                                     "Oligoflexia"
+                                                                                                     ) else x)
     master_table.to_csv(infolder + "clusters_wphyp_sited_m.tsv", sep="\t")
     x = 0
     # ot=open(f"{infolder}merged_fna_all_clusters.fna","w") ##to run CUB seperately
@@ -472,21 +478,7 @@ def figure_4():
     ax.set_ylabel("Genome Size (Mb)")
     plt.show()
 
-def figure_5():
-    color_pellet = ["#332288", "#117733", "#44AA99", "#88CCEE", "#DDCC77", "#CC6677", "#AA4499",
-                    "#882255"]
-    # Fig 5.1 Scatter perc_coding vs genome size with marginal density
-    scatter_plot = sns.JointGrid(y=master_table.perc_coding_combined, x=master_table.reassembly_size_mb,
-                                 # col=master_table.phylophlan_phyla, col_wrap=4, height=4, aspect=.7,
-                                 # size=master_table.cluster_abundance, hue=master_table.NumberofMembers,
-                                 palette=color_pellet,
-                                 xlim=(0, 8)
-                                 )
-    scatter_plot.plot_joint(sns.scatterplot)
-    scatter_plot.ax_joint.axvline(2, ls="--")
-    scatter_plot.plot_marginals(sns.kdeplot)
-    scatter_plot.ax_joint.axvline(4, ls="--")
-    plt.show()
+
 
 
 def figure_6():
@@ -604,6 +596,24 @@ def figure_7():
     plt.show()
 
 
+def figure_scatter_marginal_density():
+    color_pellet = ["#332288", "#117733", "#44AA99", "#88CCEE", "#DDCC77", "#CC6677", "#AA4499",
+                    "#882255"]
+    # Fig 5.1 Scatter perc_coding vs genome size with marginal density
+    scatter_plot = sns.JointGrid(y=master_table.perc_coding_combined, x=master_table.reassembly_size_mb,
+                                 # col=master_table.Kraken_Phyla2, col_wrap=4, height=4, aspect=.7,
+                                 # size=master_table.cluster_abundance, hue=master_table.NumberofMembers,
+                                 palette=color_pellet,
+                                 xlim=(0, 8)
+                                 )
+    scatter_plot.plot_joint(sns.scatterplot)
+    scatter_plot.ax_joint.axvline(2, ls="--")
+    scatter_plot.plot_marginals(sns.kdeplot)
+    scatter_plot.ax_joint.axvline(4, ls="--")
+    scatter_plot.set_axis_labels("Genome Size (Mb)","Coding Regions (%)")
+    plt.show()
+
+
 def figure_codons():
     from matplotlib.lines import Line2D
     # Codon Preference Graphs
@@ -629,7 +639,7 @@ def figure_codons():
     # x=sns.clustermap(new,row_colors=row_cols,col_cluster=False,row_cluster=False,xticklabels=True)
     # plt.legend(x.row_colors)
     # plt.show()
-    new["phyla"] = new.apply(lambda x: sorted_master.loc[x.name]["phylophlan_phyla"], axis=1)
+    new["phyla"] = new.apply(lambda x: sorted_master.loc[x.name]["Kraken_Phyla2"], axis=1)
     new_acti = new[new["phyla"] == "Actinobacteria"]
     new_bacti = new[new["phyla"] == "Bacteroidetes"]
     new_proteo = new[new["phyla"] == "Proteobacteria"]
@@ -652,22 +662,26 @@ def figure_codons():
                         scatter_kws={'alpha': 0.2, 's': 10})
             axs[axx, axy].set_ylabel("")
             axs[axx, axy].set_xlabel("")
-            axs[axx, axy].set_title(codon)
+            axs[axx, axy].set_title(codon,fontsize=20)
             axs[axx, axy].set_ylim(0, )
-    axs[0, 0].set_ylabel(f"Alanine")
-    axs[1, 0].set_ylabel(f"Glycine")
-    axs[2, 0].set_ylabel(f"Threonine")
-    axs[2, 0].set_xlabel("Genome Size (MB)")
-    axs[2, 1].set_xlabel("Genome Size (MB)")
-    axs[2, 2].set_xlabel("Genome Size (MB)")
-    axs[2, 3].set_xlabel("Genome Size (MB)")
+    axs[0, 0].set_ylabel(f"Alanine",fontsize=20)
+    axs[1, 0].set_ylabel(f"Glycine",fontsize=20)
+    axs[2, 0].set_ylabel(f"Threonine",fontsize=20)
+    axs[2, 0].set_xlabel("Genome Size (Mb)",fontsize=20)
+    axs[2, 1].set_xlabel("Genome Size (Mb)",fontsize=20)
+    axs[2, 2].set_xlabel("Genome Size (Mb)",fontsize=20)
+    axs[2, 3].set_xlabel("Genome Size (Mb)",fontsize=20)
     legend_elements=[Line2D([0], [0], marker='o', markerfacecolor='black' , color='black',   label='All', markersize=5, alpha=0.2),
                      Line2D([0], [0], marker='o', markerfacecolor="#E69F00",color="#E69F00", label='Actinobacteria', markersize=5, alpha=0.5),
                      Line2D([0], [0], marker='o', markerfacecolor="#56B4E9",color="#56B4E9", label='Bacteroidetes', markersize=5, alpha=0.5),
                      Line2D([0], [0], marker='o', markerfacecolor="#009E73",color="#009E73", label='Proteobacteria', markersize=5, alpha=0.5),
                      Line2D([0], [0], marker='o', markerfacecolor="#D55E00",color="#D55E00", label='Cyanobacteria',  markersize=5, alpha=0.5)
                      ]
-    fig.legend(legend_elements,["All","Actinobacteria","Bacteroidetes","Proteobacteria","Cyanobacteria"])
+    fig.legend(legend_elements,
+               ["All","Actinobacteria","Bacteroidetes","Proteobacteria","Cyanobacteria"],
+               loc=8,
+               ncol=5,
+               prop={"size":20})
     plt.show()
 
 
@@ -683,7 +697,7 @@ def figure_box_plots():
                         order=["Small", "Medium", "Big"],
                         test="t-test_welch", loc='inside', verbose=2, text_format='simple')
     sns.set_palette("dark")
-    plot_box.set(xlabel='Genome Size', ylabel='GC (%)')
+    plot_box.set(xlabel='Genome Size (Mb)', ylabel='GC (%)')
     plt.show()
 
     x = "Genome_Size"
@@ -697,7 +711,7 @@ def figure_box_plots():
                         order=["Small", "Medium", "Big"],
                         test="t-test_welch", loc='inside', verbose=2,text_format='simple')
     sns.set_palette("dark")
-    plot_box.set(xlabel='Genome Size', ylabel='Sigma Factor Genes')
+    plot_box.set(xlabel='Genome Size (Mb)', ylabel='No of Sigma Factor Genes')
     plt.show()
 
     x = "Genome_Size"
@@ -711,31 +725,34 @@ def figure_box_plots():
                         order=["Small", "Medium", "Big"],
                         test="t-test_welch", loc='inside', verbose=2,text_format='simple')
     sns.set_palette("dark")
-    plot_box.set(xlabel='Genome Size', ylabel='Percent Coding (%)')
+    plot_box.set(xlabel='Genome Size (Mb)', ylabel='Coding Regions (%)')
     plt.show()
 
 
 def figure_phyla_scatter():
     cols_phyla=["Proteobacteria","Actinobacteria","Bacteroidetes","Cyanobacteria"]
-    rows_params=["reassembly_gc","perc_coding_combined","sigma_factor"]
-    fig, axs = plt.subplots(3, 4, sharex="col",sharey="row")
+    rows_params=["site_TP"]
+    fig, axs = plt.subplots(1, 4, sharex="col",sharey="row")
     for axx in range(len(rows_params)):
         for axy in range(len(cols_phyla)):
             y_param=rows_params[axx]
-            x_param="reassembly_size_mb"
+            x_param="org_size"
             req_phyla=cols_phyla[axy]
-            new_data=master_table[master_table['phylophlan_phyla']==req_phyla]
+            members_table2=members_table
+            members_table2=members_table2.replace(["Alphaproteobacteria","Betaproteobacteria","Gammaroteobacteria","Deltaproteobacteria","Oligoflexia"],"Proteobacteria")
+            new_data=members_table2[members_table2['Phylum']==req_phyla]
             sns.regplot(data=new_data, y=y_param, x=x_param,
-                        color="black", ax=axs[axx, axy], ci=None,
-                        scatter_kws={'alpha': 0.5, 's': 10})
+                        color="black", ax=axs[axy], ci=None,
+                        scatter_kws={'alpha': 0.5, 's': 15})
             corr=sci.pearsonr(new_data[x_param],new_data[y_param])
+            corr_v='%.02f'%corr[0]
+            corr_p='%.02e'%corr[1]
             #axs[axx, axy].text(1,y=max(new_data[y_param]), s='%.08f'%corr[1])
-            axs[axx, axy].set_title(f"{req_phyla}\nc:{corr[0]}\np:{corr[1]}", fontsize=8) if axx==0 else axs[axx, axy].set_title(f"c:{corr[0]}\np:{corr[1]}", fontsize=8)
-            axs[axx, axy].set_ylabel("")
-            axs[axx, axy].set_xlabel("Genome Size (MB)")if axx==2 else axs[axx, axy].set_xlabel("")
-    axs[0, 0].set_ylabel(f"GC (%)")
-    axs[1, 0].set_ylabel(f"Coding Regions (%)")
-    axs[2, 0].set_ylabel(f"No of Sigma-factor Genes")
+            axs[axy].set_title(f"{req_phyla}\ncorr:{corr_v}  p-value:{corr_p}", fontsize=12) if axx==0 else axs[axy].set_title(f"corr:{corr_v}  p-value:{corr_p}", fontsize=12)
+            axs[axy].set_ylabel("")
+            axs[axy].set(yscale='log')
+            axs[axy].set_xlabel("Genome Size (Mb)")
+    axs[0].set_ylabel(f"Log of total phosphorus of extraction site")
 
     plt.show()
 
@@ -750,7 +767,7 @@ def figure_phyla_scatter2():
             y_param = "perc_coding_combined"
             x_param="reassembly_size_mb"
             req_phyla=cols_phyla[axy]
-            new_data=master_table[master_table['phylophlan_phyla']==req_phyla]
+            new_data=master_table[master_table['Kraken_Phyla2']==req_phyla]
             norm = plt.Normalize(new_data[hue_param].min(), new_data[y_param].max())
             sm = plt.cm.ScalarMappable(cmap="RdYlBu", norm=norm)
             sns.scatterplot(data=new_data, y=y_param, x=x_param,
@@ -761,11 +778,33 @@ def figure_phyla_scatter2():
             #axs[axx, axy].text(1,y=max(new_data[y_param]), s='%.08f'%corr[1])
             axs[axx, axy].set_title(f"{req_phyla}\nc:{corr[0]}\np:{corr[1]}", fontsize=8) if axx==0 else axs[axx, axy].set_title(f"c:{corr[0]}\np:{corr[1]}", fontsize=8)
             axs[axx, axy].set_ylabel("Coding Regions (%)")if axy==0 else axs[axx, axy].set_ylabel("")
-            axs[axx, axy].set_xlabel("Genome Size (MB)")if axx==1 else axs[axx, axy].set_xlabel("")
+            axs[axx, axy].set_xlabel("Genome Size (Mb)")if axx==1 else axs[axx, axy].set_xlabel("")
             fig.colorbar(sm, ax=axs[axx, axy]).set_label("GC (%)" if hue_param=="reassembly_gc" else "Number of Sigma Factor Genes")
     plt.show()
 
+def figure_phyla_scatter3():
+    cols_phyla=["Proteobacteria","Actinobacteria","Bacteroidetes","Cyanobacteria"]
+    rows_params=["reassembly_gc","perc_coding_combined","sigma_factor"]
+    fig, axs = plt.subplots(3, 4, sharex="col",sharey="row")
+    for axx in range(len(rows_params)):
+        for axy in range(len(cols_phyla)):
+            y_param=rows_params[axx]
+            x_param="reassembly_size_mb"
+            req_phyla=cols_phyla[axy]
+            new_data=master_table[master_table['Kraken_Phyla2']==req_phyla]
+            sns.regplot(data=new_data, y=y_param, x=x_param,
+                        color="black", ax=axs[axx, axy], ci=None,
+                        scatter_kws={'alpha': 0.5, 's': 10})
+            corr=sci.pearsonr(new_data[x_param],new_data[y_param])
+            #axs[axx, axy].text(1,y=max(new_data[y_param]), s='%.08f'%corr[1])
+            axs[axx, axy].set_title(f"{req_phyla}\nc:{corr[0]}\np:{corr[1]}", fontsize=8) if axx==0 else axs[axx, axy].set_title(f"c:{corr[0]}\np:{corr[1]}", fontsize=8)
+            axs[axx, axy].set_ylabel("")
+            axs[axx, axy].set_xlabel("Genome Size (MB)")if axx==2 else axs[axx, axy].set_xlabel("")
+    axs[0, 0].set_ylabel(f"GC (%)")
+    axs[1, 0].set_ylabel(f"Coding Regions (%)")
+    axs[2, 0].set_ylabel(f"No of Sigma-factor Genes")
 
+    plt.show()
 
 transformed_abundance_profile = abundance_transform(members_abundance_profile, optional=read_counts)
 load_from_table()
@@ -780,5 +819,7 @@ load_from_table()
 ##iteration for draft 3
 figure_codons()
 #figure_phyla_scatter()
+#figure_scatter_marginal_density()
 #figure_phyla_scatter2()
+#figure_phyla_scatter3()
 #figure_box_plots()

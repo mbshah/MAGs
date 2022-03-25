@@ -1,4 +1,5 @@
 # Libraries
+install.packages("tidyverse")
 library(tidyverse)
 library(hrbrthemes)
 library(viridis)
@@ -57,7 +58,7 @@ ggplot(good_bins, aes(x=Proteins_with_functional_assignments)) +
 #library(sf)
 #library(extraoperators)
 
-#maps packages required and versions:
+#maps packages required and versions used:
 #'ggrepel_0.9.1       OpenStreetMap_0.3.4 data.table_1.14.2   forcats_0.5.1       stringr_1.4.0
 #'dplyr_1.0.7         purrr_0.3.4         readr_2.1.0         tidyr_1.1.4         tibble_3.1.6
 #'ggplot2_3.3.5       tidyverse_1.3.1
