@@ -265,7 +265,7 @@ def read_minimap_paf():
             final_lineage=mag_lineage[mag][0]
         mag_lineage[mag]=final_lineage
         #print(f"{mag}\t{final_lineage}\t{len(mag_lineage[mag])}\t{collections.Counter(mag_lineage[mag]).most_common(1)}")
-    #print(lineage_mag["Bacteria;Proteobacteria;Betaproteobacteria;Burkholderiales;Comamonadaceae;Acidovorax;Acidovorax_sp._T1"])
+    #print(lineage_mag["Bacteria;Pseudomonadota;Betaproteobacteria;Burkholderiales;Comamonadaceae;Acidovorax;Acidovorax_sp._T1"])
     scafLinMAG_map = json.dumps(scafid_lineage3)
     f = open(scafLinMAG_jasonfile, "w")
     f.write(scafLinMAG_map)

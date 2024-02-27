@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from pathlib import Path
+
 import config as config
 import re
 import subprocess
@@ -208,18 +210,61 @@ def clustering(method):
     plt.savefig(infolder + "Clusters_" + method + postfix + ".svg", dpi=1000, bbox_inches='tight')
 
 
+def run_drep():
+    import shutil
+    from pathlib import Path
+    good_bin_folder = config.outfolder + "good_bins/"
+    drep_work_folder = config.outfolder + "dRep_workfolder_2/"
+    Path(good_bin_folder).mkdir(parents=True, exist_ok=True)
+    for bins in inBins:
+        if not Path(inBins[bins]).is_file():
+            shutil.copy2(inBins[bins], good_bin_folder)
+    drep_command = f"dRep dereplicate {drep_work_folder} -p {threads}"
+    print(drep_command)
+    os.system(
+        drep_command)  ##changed d_filter.py to give a different tmp dir to checkm putting the d_filter.py in currentfolder folder
+
+
+def process_drep_output():
+    import pandas as pd
+    drep_outfolder = config.outfolder + "dRep__gff/"
+    drep_cluster_table_file = Path(drep_outfolder).joinpath("data_tables/Widb.csv")
+    drep_input_genomes_file = Path(drep_outfolder).joinpath("data_tables/Chdb.csv")
+    drep_cluster_def_file = Path(drep_outfolder).joinpath("data_tables/Cdb.csv")
+    outfile = Path(drep_outfolder).joinpath("post_cluster_summary.csv")
+    cluster_summary_table = pd.read_csv(drep_cluster_table_file)
+    cluster_def_table = pd.read_csv(drep_cluster_def_file)
+    index_col = []
+    for cluster_count in range(len(cluster_summary_table.index)):
+        index_col.append("EUL_" + "{:0>3d}".format(cluster_count + 1))
+    cluster_summary_table = cluster_summary_table.set_index(pd.Index(index_col))
+    cluster_summary_table.index.name = "cluster_ID"
+    cluster_summary_table = cluster_summary_table.rename(columns={"genome": "Representative_Genome",
+                                                                  "completeness": "checkm_completeness",
+                                                                  "contamination": "",
+                                                                  "size": "NoOfBases"
+                                                                  })
+    if "members_list" not in cluster_summary_table.columns:
+        cluster_summary_table["members_list"] = cluster_summary_table.cluster.apply(
+            lambda x: ";".join(cluster_def_table.loc[cluster_def_table["secondary_cluster"] == x, "genome"]))
+    cluster_summary_table.to_csv(outfile)
+
+
 def main():
-    build_bin_fasta_list()
-    print("number of good bins is " + str(len(inBins)))
-    initialize()
-    pool = mp.Pool(threads)
-    pool.map(ani_calc, [ref for ref in inBins])
-    merge_ani_results()
-    distance_matrix()
+    #build_bin_fasta_list()
+    #run_drep()
+    process_drep_output()
+
+    # print("number of good bins is " + str(len(inBins)))
+    # initialize()
+    # pool = mp.Pool(threads)
+    # pool.map(ani_calc, [ref for ref in inBins])
+    # merge_ani_results()
+    # distance_matrix()
     # for method in ("single","average","complete"):
-    for method in ['average']:
-        clustering(method)
-        segregate_cluster(method)
+    # for method in ['average']:
+    #    clustering(method)
+    #    segregate_cluster(method)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,5 @@
 import statistics
 import subprocess
-
 import config as config
 from Bio import SeqIO
 import os
@@ -243,7 +242,7 @@ def find_phyla(taxa):
         if l_node == "class":
             clas = tp.names[level]
     if phyla == "Other": print("----")
-    retval = clas if phyla == "Proteobacteria" else phyla
+    retval = clas if phyla == "Pseudomonadota" else phyla
     return retval
 
 
@@ -542,15 +541,37 @@ def addSiteMetaData():
         lambda x: get_sigmafactor(x))
     my_table.to_csv(infolder + "clusters_wphyp_sited.tsv", sep="\t", index=False)
 
+def addgtdbtkInfo():
+    import pandas as pd
+    working_file = infolder + "clusters_wphyp_sited.tsv"
+    magsTable = pd.read_csv(working_file, sep="\t")
+    gtdb_assignment_file=infolder + "gtdbtk/gtdbtk_classify_out/classify/gtdbtk.bac120.summary.tsv"
+    gtdb_table=pd.read_csv(gtdb_assignment_file,sep="\t")
+    if "gtdb_phyla" not in magsTable.columns: magsTable["gtdb_phyla"] = magsTable.Cluster.apply(
+        lambda x:getgtdbInfo(1,gtdb_table.loc[gtdb_table['user_genome']==x,"pplacer_taxonomy"].tolist()[0]))
+    if "gtdb_genus" not in magsTable.columns: magsTable["gtdb_genus"] = magsTable.Cluster.apply(
+        lambda x:getgtdbInfo(5,gtdb_table.loc[gtdb_table['user_genome']==x,"pplacer_taxonomy"].tolist()[0]))
+    magsTable.to_csv(infolder + "clusters_gtdbtk.tsv", sep="\t", index=False)
+
+def getgtdbInfo(lev, tax_str):
+    tax=str(tax_str).strip().split(";")
+    taxa=tax[lev]
+    taxa_refined=taxa.split("__")[-1]
+    if taxa_refined=="":taxa_refined="N/A"
+    #print(str(tax_str),taxa_refined)
+    return taxa_refined
+
 
 # cluster_reassembly("average")
 # summarize_reassembly()
 # tp.tax_initiate(taxdumpdir)
 # retax_kraken()
 # patric_sandq()
-load_site_metadata()
+#load_site_metadata()
 # patric_retrieve_sort()
 ##command used for phylophlan:
-# phylophlan_metagenomic -i ../cluster_reps/ -o output_metagenomic --nproc 15 -n 1 -d SGB.Jul20 -e 'fasta' --verbose 2>&1 | tee phylophlan_metagenomic.log ----database_folder ../../ancilary/phylophlan_databases
+# phylophlan_metagenomic -i /mnt/xio_5t/botany/MAGs/outfile/dRep__gff/Rep_genomes/ -o output_metagenomic_phlophlan --nproc 15 -n 1 -d SGB.Jul20 -e 'fasta' --database_folder /mnt/xio_5t/botany/phylophlan_databases --verbose 2>&1 | tee phylophlan_metagenomic.log
+# phylophlan -i ../cluster_reps/ -d phylophlan --diversity low -f supermatrix_aa.cfg --genome_extension fasta --nproc 15
 # addData()
-addSiteMetaData()
+#addSiteMetaData()
+addgtdbtkInfo()

@@ -7,7 +7,7 @@ do
 done
 
 
-for i in $(ls $folder)
+for i in $folder
 do
 	i_name=${i:0:11}
 	for y in "${samples[@]}"
@@ -16,7 +16,7 @@ do
 		if [ "$y" = "$i_name" ] ; then
 		file1="$folder$i"
 		file2="$folder/../sorted/$y/$i"
-			#cp $file1 $file2
+		cp $file1 $file2
 		fi
 	done
 done

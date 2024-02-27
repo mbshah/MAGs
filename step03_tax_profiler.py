@@ -7,8 +7,8 @@ import sys
 import subprocess
 
 # input parameters
-list_file = "/home/hb0358/PycharmProjects/mbs_general/MAGs/outfile/all_sample_summary.tsv"
-taxonomy_col = 13  # zero index # MAINLY if you want to use checkm output, if using dastool+ubin output, sample and taxonomy definintion in function profilize
+list_file = config.outfolder+"/dRep_workfolder/post_cluster_data.csv"
+taxonomy_col = 27  # zero index # MAINLY if you want to use checkm output, if using dastool+ubin output, sample and taxonomy definintion in function profilize
 usecheckm = True
 compl_col = config.compl_col  # zero index
 min_compl = config.min_compl
@@ -185,11 +185,13 @@ def profilize(infile, col):
             tax = " ".join(bin_arr[2:-2])  # IF NOT USING CHECKM please change this
             lin_node = "c"
             if sample not in samples: samples.append(sample)
-            isfilterok = config.filterok(config.filter_check(max_compl, min_compl, entry[compl_col]),
-                                         config.filter_check(max_contam, min_contam, entry[contam_col]))
-            print(entry[contam_col])
+            #isfilterok = config.filterok(config.filter_check(max_compl, min_compl, entry[compl_col]),
+            #                             config.filter_check(max_contam, min_contam, entry[contam_col]))
+            #print(entry[contam_col])
+            isfilterok = True
             if isfilterok:
                 if usecheckm:
+                    print(entry[col])
                     lin_node = entry[col][0]
                     tax = re.sub('\(.*\)$', "", entry[col]).strip()
                     tax = re.sub('\w__', "", tax)

@@ -169,29 +169,48 @@ out<-pathview(gene.data=kosummary_table[,1:3],
               species = "ko")
 
 
-#BOx_plot_members_table
-members_table<-as.data.frame(fread("MAGs/outfile/clusters_dastool_90_10_average/member_table.tsv"))
+#BOx_plot_members_table with weights keep as is for the p-values, the plots itself also implemented in python.
+library(tidyverse)
+library(data.table)
 library(ggpubr)
+members_table<-as.data.frame(fread("/home/hb0358/PycharmProjects/mbs_general/MAGs/outfile/dRep__gff/members_table.csv"))
 members_table["wt_mean"]<-members_table$org_size*members_table$abundance
-p<-ggboxplot(members_table,x="tp_lev",y="org_size")
+members_table["tp_lev"]<-ifelse(members_table$site_TP>10,"high","low")
+p<-ggboxplot(members_table,x="tp_lev",y="size_rep")
 p+stat_compare_means(comparisons = list(c("low","high")), method = "t.test")
 
-data <- read.table("MAGs/outfile/clusters_dastool_90_10_average/member_table.tsv", header=T, sep="\t")
-
+data <- read.table("/home/hb0358/PycharmProjects/mbs_general/MAGs/outfile/dRep__gff/members_table.csv", header=T, sep=",")
+data["tp_lev"]<-ifelse(data$site_TP>10,"High","Low")
 library(ggplot2)
 library(ggpubr)
+library(grid)
 
-q <- ggplot(data, aes(y=org_size, x=tp_lev))+
+q <- ggplot(data, aes(y=size_rep, x=tp_lev))+
   geom_boxplot()+
   theme_bw()
 q
 
-p <- ggplot(data, aes(y=org_size, x=tp_lev))+
-  geom_boxplot(aes(weight=abundance))+
-  theme_bw()
+t_val<-wtd.t.test(subset(data,tp_lev=="low")$size_mem, subset(data,tp_lev=="high")$size_mem, weight=subset(data,tp_lev=="low")$abundance_m, weighty = subset(data,tp_lev=="high")$abundance_m, samedata=F)$coefficients
+t_val["p.value"]
+p <- ggplot(data, aes(y=size_rep, x=tp_lev))+
+  geom_boxplot(aes(weight=abundance_m))+
+  theme_classic2()+
+  annotate("rect", xmin = 1, xmax = 2, ymin = 8.5, ymax =8.5, alpha=1,colour = "black")+
+  geom_text(x=1.5, y=8.6,label=paste0("p = ",t_val["p.value"]))+xlab("Total Phosphorus Level")+
+  ylab("Genome Size (Mb)")
+
 p
+
++grid.text("test",x=unit(0.15, "npc"),y=unit(0.15, "npc"))
+
+
++stat_compare_means(comparisons = list(c("low","high")), method = "t.test")
 
 test <- split(data, f=data$tp_lev)
 
 library(weights)
-wtd.t.test(test[[1]]$org_size, test[[2]]$org_size, weight=test[[1]]$abundance, weighty = test[[2]]$abundance, samedata=FALSE)
+
+wtd.t.test(subset(data,tp_lev=="Low")$size_mem, subset(data,tp_lev=="High")$size_mem, weight=subset(data,tp_lev=="Low")$abundance_m, weighty = subset(data,tp_lev=="High")$abundance_m, samedata=T)
+wtd.t.test()
+
+subset(data,tp_lev=="low")$size_rep

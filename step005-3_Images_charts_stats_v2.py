@@ -34,10 +34,10 @@ streamlined_table = master_table[(master_table["reassembly_size_mb"] <= 2)]
 non_streamlined_table = master_table[(master_table["reassembly_size_mb"] >= 4)]
 intermediate_streamlined_table = master_table[
     (master_table["reassembly_size_mb"] < 4) & (master_table["reassembly_size_mb"] > 2)]
-members_abundance_profile = pd.read_csv(infolder + "cluster_abundance_profile_transformed_deseq2.tsv", sep="\t",
-                                        index_col="abundance").transpose()
-# members_abundance_profile = pd.read_csv(config.outfolder + "cluster_abundance_profile_normalized_deseq2.tsv", sep="\t",
-#                                        index_col="Cluster")
+#members_abundance_profile = pd.read_csv(infolder + "cluster_abundance_profile_transformed_deseq2.tsv", sep="\t",
+#                                        index_col="abundance").transpose()
+members_abundance_profile = pd.read_csv(infolder + "cluster_abundance_profile_normalized_deseq2.tsv", sep="\t",
+                                        index_col="abundance")
 read_counts = pd.read_csv(config.read_counts_file, sep="\t", index_col="Sample")
 
 
@@ -349,7 +349,7 @@ def data_plots2():
 
 
 
-def figure_3():
+def fig_env_rel():
     color_pellet = ["#332288", "#117733", "#44AA99", "#88CCEE", "#DDCC77", "#CC6677", "#AA4499",
                     "#882255"]
     level = "gtdb_genus"
@@ -421,16 +421,19 @@ def figure_3():
     plt.show()
     #print_full(members_table.groupby(level))
 
-def figure_4():
-    # Fig 4.1.3 (scatter_plot with members_table) ##NEWLY MODIFIED FOR NEW ABUNDANCE BOX plot
+
+def fig_tpvsSize():
+    # Fig 4.1.3 (scatter_plot with members_table) ##NEWLY MODIFIED FOR NEW ABUNDANCE BOX plot WEIGHTED (abundance/10000) takes time
+    #the /10000 gives same result as without but is 1000 times faster. for the p value use R's function from library(weights) to perform weighted t.test
+    #wtd.t.test(x=subset(data,tp_lev=="low")$size_mem, y=subset(data,tp_lev=="high")$size_mem, weight=subset(data,tp_lev=="low")$abundance_m, weighty = subset(data,tp_lev=="high")$abundance_m, samedata=F)
     try_tab = pd.DataFrame(columns=["org", "tp", "org_size"])
     j = 0
     for x in members_table.index:
-        abundance = members_table.abundance[x]
+        abundance = members_table.abundance_m[x]
         tp = members_table.site_TP[x]
-        org_size = members_table.org_size[x]
-        org = members_table.Member[x]
-        for i in range(1, round(abundance) + 1):
+        org_size = members_table.size_rep[x]
+        org = x
+        for i in range(1, round(abundance/10000) + 1):
             j = j + 1
             try_tab.loc[j] = [org, tp, org_size]
         #print(x)
@@ -442,8 +445,8 @@ def figure_4():
                         y=try_tab.org_size,
                         box_pairs=[("Low","High")],
                         order=["Low","High"],
-                        text_annot_custom=["pvalue=0.07"],
-                        perform_stat_test=False, pvalues=[0.07],
+                        text_annot_custom=["pvalue=0.006"],
+                        perform_stat_test=False, pvalues=[0.006],
                         text_format='simple', loc='inside', verbose=2)
     sns.set_palette("dark")
     ax.set_xlabel("Phosphorus Level")
@@ -453,21 +456,21 @@ def figure_4():
 
 
 
-def figure_6():
+def fig_GC_anal():
     # Fig 6.1 boxplots
-    x = "Genome_Size"
-    y = "reassembly_gc"
-    plot_box = sns.boxplot(data=master_table, y=y, x=x,
-                           # col=master_table.gtdb_phyla, col_wrap=4, height=4, aspect=.7,
-                           palette="rocket",
-                           order=["Small", "Medium", "Big"])
-    add_stat_annotation(plot_box, data=master_table, x=x, y=y,
-                        box_pairs=[("Small", "Big"), ("Small", "Medium"), ("Big", "Medium")],
-                        order=["Small", "Medium", "Big"],
-                        test="t-test_welch", loc='inside', verbose=2,text_format='simple')
-    sns.set_palette("dark")
-    plot_box.set(xlabel='Genome Size', ylabel='GC (%)')
-    plt.show()
+    # x = "Genome_Size"
+    # y = "reassembly_gc"
+    # plot_box = sns.boxplot(data=master_table, y=y, x=x,
+    #                        # col=master_table.gtdb_phyla, col_wrap=4, height=4, aspect=.7,
+    #                        palette="rocket",
+    #                        order=["Small", "Medium", "Big"])
+    # add_stat_annotation(plot_box, data=master_table, x=x, y=y,
+    #                     box_pairs=[("Small", "Big"), ("Small", "Medium"), ("Big", "Medium")],
+    #                     order=["Small", "Medium", "Big"],
+    #                     test="t-test_welch", loc='inside', verbose=2,text_format='simple')
+    # sns.set_palette("dark")
+    # plot_box.set(xlabel='Genome Size', ylabel='GC (%)')
+    # plt.show()
 
     # Fig 6.2 Scatter perc_coding vs genome size without marginal density but with with HUE and colorbar
     x="reassembly_size_mb"
@@ -498,7 +501,7 @@ def figure_6():
     norm = plt.Normalize(master_table[hue].min(), master_table[y].max())
     sm = plt.cm.ScalarMappable(cmap="RdYlBu", norm=norm)
     ax = sns.FacetGrid(data=master_table[master_table['gtdb_phyla'].apply(lambda x: any([y in x for y in req_phyla]))],
-                      col="gtdb_phyla", col_wrap=4, height=4, aspect=1,col_order=req_phyla,
+                      col="gtdb_phyla", col_wrap=2, height=4, aspect=1,col_order=req_phyla,
                       hue=hue,
                       palette="RdYlBu",
                       )
@@ -506,8 +509,7 @@ def figure_6():
     ax.set_axis_labels("Genome Size (Mb)", "Coding Regions (%)")
     ax.set_titles(col_template="{col_name}")
     #ax.get_legend().remove()
-    #ax.figure.colorbar(sm)
-    plt.colorbar(sm).set_label("GC Content")
+    #plt.colorbar(sm).set_label("GC Content")
     plt.show()
 
 def figure_7():
@@ -657,9 +659,10 @@ def figure_codons():
     plt.show()
 
 
-def figure_box_plots():
+def fig_size_box_plots():
     x = "Genome_Size"
     y = "reassembly_gc"
+    print(f"{x}\t{y}")
     plot_box = sns.boxplot(data=master_table, y=y, x=x,
                            # col=master_table.gtdb_phyla, col_wrap=4, height=4, aspect=.7,
                            palette="rocket",
@@ -674,6 +677,7 @@ def figure_box_plots():
 
     x = "Genome_Size"
     y = "sigma_factor"
+    print(f"{x}\t{y}")
     plot_box = sns.boxplot(data=master_table, y=y, x=x,
                            # col=master_table.gtdb_phyla, col_wrap=4, height=4, aspect=.7,
                            palette="rocket",
@@ -688,6 +692,7 @@ def figure_box_plots():
 
     x = "Genome_Size"
     y = "coding_perc"
+    print(f"{x}\t{y}")
     plot_box = sns.boxplot(data=master_table, y=y, x=x,
                            # col=master_table.gtdb_phyla, col_wrap=4, height=4, aspect=.7,
                            palette="rocket",
@@ -782,16 +787,16 @@ def figure_phyla_scatter3():
 load_from_table()
 #make_ko_category_table()
 #data_plots2() #Draft set of plots, workspace to try plots
-#figure_3() #genus/phyl members bar plot with pH Temp Elevation with number of lakes and MAGs
-#figure_4() #box plot TP_Level #takes 5 minutes to make the plot because of the weights
+#fig_env_rel() #genus/phyl members bar plot with pH Temp Elevation with number of lakes and MAGs
+#fig_tpvsSize() #box plot TP_Level #takes 5 minutes to make the plot because of the weights
 #figure_5() #scatterplot with marginal density
-#figure_6() #GC Analysis
-figure_7() #sigmafactor analysis
-#figure_codons()
+#fig_GC_anal() #GC Analysis
+#figure_7() #sigmafactor analysis
+figure_codons()
 ##iteration for draft 3
 #figure_codons()
 #figure_phyla_scatter()
 #figure_scatter_marginal_density()
 #figure_phyla_scatter2()
 #figure_phyla_scatter3()
-#figure_box_plots()
+#fig_size_box_plots()

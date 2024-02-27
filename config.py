@@ -1,17 +1,18 @@
-curation_file = "Assembled_Metagenomes//Curated_MAGs.tsv.txt"
-sample_metadata = "Assembled_Metagenomes/CED91220.tsv"
-scg_list_file = "Assembled_Metagenomes/SCG_list.tsv.csv"
-read_counts_file = "Assembled_Metagenomes/read_counts.tsv"
-raw_fastq="/mnt/xio/botany/mbs_workfolder/wmg_raw/"
+curation_file = "/home/hb0358/PycharmProjects/mbs_general/MAGs/Assembled_Metagenomes//Curated_MAGs.tsv.txt"
+sample_metadata = "/home/hb0358/PycharmProjects/mbs_general/MAGs/Assembled_Metagenomes/CED91220.tsv"
+scg_list_file = "/home/hb0358/PycharmProjects/mbs_general/MAGs/Assembled_Metagenomes/SCG_list.tsv.csv"
+read_counts_file = "/home/hb0358/PycharmProjects/mbs_general/MAGs/Assembled_Metagenomes/read_counts.tsv"
+raw_fastq="/mnt/biodiv/Manan/MAGs/raw_fastq/"
 method="average"
 postfix="_dastool_90_10"
-compl_col = 11  # zero index
-min_compl =90
+compl_col = 3  # zero index
+min_compl =0
 max_compl = 100
-contam_col = 12  # zero index
+contam_col = 4  # zero index
 min_contam = 0
-max_contam = 10
-outfolder= "outfile/"
+max_contam = 50
+#outfolder= "/mnt/xio/botany/MAGs/outfile/"
+outfolder= "/home/hb0358/PycharmProjects/mbs_general/MAGs/outfile/"
 fasta_folder="s_fasta/"
 taxdumpdir = "/home/hb0358/PycharmProjects/mbs_general/ancilary/new_taxdump"
 anciliaryfolder="/home/hb0358/PycharmProjects/mbs_general/ancilary"
@@ -77,3 +78,7 @@ def filterok(a, b):
         return True
     else:
         return False
+
+
+x="srnfgs"
+r=True if x.isnumeric() else False

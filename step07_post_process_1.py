@@ -15,7 +15,7 @@ from pathlib import Path
 import config as config
 import os
 
-infolder = config.outfolder + "clusters" + config.postfix + "_" + config.method + "/"
+infolder = config.outfolder + "dRep__gff/"
 genemark_folder = "../tools/gms2_linux_64/"
 growthpred_folder = "../tools/growthpred-v1.07/"
 os.environ["GROWTHPRED_SHARE"] = growthpred_folder + "/shared/"
@@ -23,7 +23,6 @@ os.environ["GROWTHPRED_LIBEX"] = growthpred_folder + "/Programs/"
 kofam_folder="../tools/KOfamKoala/kofam_scan-1.3.0/"
 kegg_db_folder="../ancilary/kegg/"
 genomes_metadata = {}
-sample_metadata = {}
 bins_metadata = {}
 
 
@@ -31,31 +30,9 @@ def load_data():
     global genomes_metadata
     global sample_metadata
     global bins_metadata
-    clusters_file = infolder + "clusters_wphyp_sited.tsv"
-    sample_metadata_file = config.sample_metadata
+    clusters_file = infolder + "post_cluster_data.csv"
     bins_metadata_file = config.outfolder + "/all_sample_summary.tsv"
-    with open(clusters_file, "r") as cf:
-        header = next(cf)
-        header_ar = header.split("\t")
-        for line in cf:
-            entry = line.split("\t")
-            key = entry[0]
-            genomes_metadata[key] = {}
-            i = 0
-            while i < len(header_ar):
-                genomes_metadata[key][header_ar[i]] = entry[i]
-                i = i + 1
-    with open(sample_metadata_file, "r") as sf:
-        header = next(sf)
-        header_ar = header.split("\t")
-        for line in sf:
-            entry = line.split("\t")
-            key = entry[1]
-            sample_metadata[key] = {}
-            i = 0
-            while i < len(header_ar):
-                sample_metadata[key][header_ar[i]] = entry[i]
-                i = i + 1
+    genomes_metadata=pd.read_csv(clusters_file)
     with open(bins_metadata_file, "r") as bf:
         header = next(bf)
         header_ar = header.split("\t")
@@ -67,54 +44,6 @@ def load_data():
             while i < len(header_ar):
                 bins_metadata[key][header_ar[i]] = entry[i]
                 i = i + 1
-
-
-def geneprediction_generate():
-    for genome in genomes_metadata:
-        genome_dir = infolder + genome + "/"
-        genome_fasta = genome_dir + genome + ".fasta"
-        gene_pred_fnn = genome_dir + genome + "_gms.fna"
-        gene_pred_faa = genome_dir + genome + "_gms.faa"
-        gms_out = genome_dir + genome + "_gms.lst"
-        command = f"perl {genemark_folder}/gms2.pl --seq {genome_fasta} --output {gms_out} --fnn {gene_pred_fnn} --faa {gene_pred_faa} --genome-type bacteria"
-        print(command)
-        os.system(command)
-        os.system("rm ./GMS2.mod")
-
-
-def get_ogt(members):
-    temp_sum = 0
-    if str(members).endswith(";"): members = members[0:-1]
-    members = members.replace('"', '')
-    members2 = members.split(";")
-    for member in members2:
-        if member != "":
-            sample = "_".join(member.split("_")[0:2])
-            temp = sample_metadata[sample]["temperature"]
-            temp_sum = temp_sum + float(temp)
-    temp_avg = temp_sum / len(members2)
-    return temp_avg
-
-
-def run_growthpred():
-    for genome in genomes_metadata:
-        genome_dir = infolder + genome + "/"
-        gene_pred_fnn = genome_dir + genome + "_gms.fna"
-        code = 0
-        gp_out = "gp_out"
-        gp_out_final = genome_dir + genome + "_growthpred.result"
-        ogt = get_ogt(genomes_metadata[genome]["Members"])
-        command = f"python2 {growthpred_folder}/growthpred-v1.07.py -b -g {gene_pred_fnn} -o {gp_out} -c {code} -T {ogt} -s -S"
-        print (command)
-        os.system(command)
-        print(command)
-        command=f"mv gp_out.results {gp_out_final}"
-        os.system(command)
-        #command=f'grep "Predicted minimum generation time" {infolder}/*/*'
-        out = (subprocess.Popen(["grep", "Predicted minimum generation time", f'{gp_out_final}'],
-                                stdout=subprocess.PIPE).communicate()[0]).decode("utf-8")
-        out = out.replace("\n", "").replace("Predicted minimum generation time:  ", "")
-        print(f"predicted growth rate= {out}")
 
 
 def run_kofamkoala():
@@ -134,15 +63,6 @@ def run_kofamkoala():
         command=f'grep "^*" {kofam_raw_output} >>{kofam_filtered_output}'
         print (command)
         os.system(command)
-
-
-def run_checkm():
-    checkm_in=infolder+"cluster_reps/"
-    checkm_out=infolder+"checkm_stg2_out/"
-    checkm_tsv=infolder+"checkm_reps.tsv"
-    command=f"checkm lineage_wf -t 8 -x fasta --tab_table -q {checkm_in} {checkm_out} >{checkm_tsv}"
-    print(command)
-    os.system(command)
 
 
 def find_genes():
@@ -201,57 +121,65 @@ def ko_profiler():
     uniq_pathways=[]
     all_KIDs=[]
     #infolder = config.outfolder + "clusters" + config.postfix + "_" + config.method + "/"
-    org_tsv_out = infolder + "clusters_wphyp_sited.tsv"
+    org_tsv_out = infolder + "post_cluster_data.csv"
     with open(org_tsv_out,"r")as org_tsv:
-        header=next(org_tsv).strip().split("\t")
+        header=next(org_tsv).strip().split(",")
+        test_count=0
         for line in org_tsv:
-            entry=line.strip().split("\t")
-            print(f"Identifying KOs/Pathways/SubSystem for {entry[0]}")
-            table[entry[0]]={}
-            table[entry[0]]["Cluster"]=entry[0]
-            table_pathway[entry[0]] = {}
-            table_pathway[entry[0]]["Cluster"] = entry[0]
-            table_subSystem[entry[0]] = {}
-            table_subSystem[entry[0]]["Cluster"] = entry[0]
-            #for i in range(0,len(header)):
-            #    table[entry[0]][header[i]]=entry[i]
-            kofam_out=f"{infolder}/{entry[0]}/{entry[0]}_ko_filtered.tsv"
-            number_of_KOs=int(os.popen(f"grep \"^*\" {kofam_out} |wc -l").read())
-            org_kids=[]
-            org_pathways=[]
-            org_classes= []
-            #print(table[entry[0]]["taxonomy_ID"])
-            if os.path.getsize(kofam_out)==0:pass
-            else:
-                with open(kofam_out) as kofam_tsv:
-                    next(kofam_tsv)
-                    for kLine in kofam_tsv:
-                        kEntry=kLine.split("\t")
-                        kID=kEntry[2]
-                        org_kids.append(kID)
-            kIDs_c=dict(collections.Counter(org_kids))
-            #pathways = getpathways(kIDs_c)
-            #org_pathways=org_pathways+pathways
-            #pathway_count=dict(collections.Counter(org_pathways))
-            #org_classes=org_classes+getkclasses(pathway_count)
-            #class_count=dict(collections.Counter(org_classes))
-            #print(class_count)
-            pathway_count,class_count=kegg_info_accumulate(list(kIDs_c.keys()))
-            for keggID in kIDs_c:
-                if keggID not in all_KIDs: all_KIDs.append(keggID)
-                table[entry[0]][keggID]=1
-            for kpathway in pathway_count:
-                if kpathway not in uniq_pathways:uniq_pathways.append(kpathway)
-                table_pathway[entry[0]][kpathway]=pathway_count[kpathway]
-            for kclass in class_count:
-                if kclass not in uniq_classes:uniq_classes.append(kclass)
-                table_subSystem[entry[0]][kclass]=class_count[kclass]
-            number_of_KOs=len(kIDs_c)
-            table[entry[0]]["no_of_KOs"]=number_of_KOs
+            #if test_count<11:
+                test_count=test_count+1
+                entry=line.strip().split(",")
+                cluster_ID=entry[0]
+                print(f"Identifying KOs/Pathways/SubSystem for {cluster_ID}")
+                table[cluster_ID]={}
+                table[cluster_ID]["cluster_ID"]=cluster_ID
+                table_pathway[cluster_ID] = {}
+                table_pathway[entry[0]]["cluster_ID"] = cluster_ID
+                table_subSystem[cluster_ID] = {}
+                table_subSystem[cluster_ID]["cluster_ID"] = cluster_ID
+                #for i in range(0,len(header)):
+                #    table[entry[0]][header[i]]=entry[i]
+                kofam_out=f"{infolder}/MicrobeAnnotator_out/annotation_results/{entry[1]}.faa.ko"
+                number_of_KOs=int(os.popen(f"grep \"^K\" {kofam_out} |wc -l").read())
+                org_kids=[]
+                org_pathways=[]
+                org_classes= []
+                #print(table[entry[0]]["taxonomy_ID"])
+                if os.path.getsize(kofam_out)==0:pass
+                else:
+                    with open(kofam_out) as kofam_tsv:
+                        next(kofam_tsv)
+                        for kLine in kofam_tsv:
+                            kEntry=kLine.split("\t")
+                            kID=kEntry[0].strip()
+                            if kID.startswith("K"):
+                                if kID not in ("K05962",'K07088',"K06955","K11189"):
+                                    #print(kID)
+                                    org_kids.append(kID)
+                kIDs_c=dict(collections.Counter(org_kids))
+                #pathways = getpathways(kIDs_c)
+                #org_pathways=org_pathways+pathways
+                #pathway_count=dict(collections.Counter(org_pathways))
+                #org_classes=org_classes+getkclasses(pathway_count)
+                #class_count=dict(collections.Counter(org_classes))
+                #print(class_count)
+                pathway_count,class_count=kegg_info_accumulate(list(kIDs_c.keys()))
+                for keggID in kIDs_c:
+                    if keggID not in all_KIDs: all_KIDs.append(keggID)
+                    table[cluster_ID][keggID]=1
+                for kpathway in pathway_count:
+                    if kpathway not in uniq_pathways:uniq_pathways.append(kpathway)
+                    table_pathway[cluster_ID][kpathway]=pathway_count[kpathway]
+                for kclass in class_count:
+                    if kclass not in uniq_classes:uniq_classes.append(kclass)
+                    table_subSystem[cluster_ID][kclass]=class_count[kclass]
+                number_of_KOs=len(kIDs_c)
+                table[cluster_ID]["no_of_KOs"]=number_of_KOs
 
     #writing_KOs
-    t_o=org_tsv_out.replace("_wphyp_sited.tsv","")+"_ko_summary.tsv"
+    t_o=org_tsv_out.replace(".csv","")+"_ko_summary.tsv"
     header2=header[0:1]
+    #print(header2)
     if "no_of_KOs" not in header2: header2.append("no_of_KOs")
     for keggID in all_KIDs:
         if keggID not in header2:header2.append(keggID)
@@ -260,14 +188,18 @@ def ko_profiler():
     x.write("\n")
     for entry in table:
         line=[]
+        #line.append(str(entry))
+        #print(table[entry])
         for value_h in header2:
             if value_h in table[entry]:value=table[entry][value_h]
-            else:value=0
+            else:
+                #print(value_h)
+                value=entry if value_h.startswith("EUL") else 0
             line.append(str(value))
         x.write("\t".join(line)+"\n")
     x.close()
     #writing pathways
-    t2_o = org_tsv_out.replace("_wphyp_sited.tsv", "") + "_pathway_summary.tsv"
+    t2_o = org_tsv_out.replace(".csv", "") + "_pathway_summary.tsv"
     header2 = header[0:1]
     for kpathway in uniq_pathways:
         if kpathway not in header2:header2.append(kpathway)
@@ -276,6 +208,7 @@ def ko_profiler():
     x.write("\n")
     for entry in table_pathway:
         line = []
+        #line.append(str(entry))
         for value_h in header2:
             if value_h in table_pathway[entry]:
                 value = table_pathway[entry][value_h]
@@ -285,7 +218,7 @@ def ko_profiler():
         x.write("\t".join(line) + "\n")
     x.close()
     #writing subSystems
-    t3_o = org_tsv_out.replace("_wphyp_sited.tsv", "") + "_subSystem_summary.tsv"
+    t3_o = org_tsv_out.replace(".csv", "") + "_subSystem_summary.tsv"
     header2 = header[0:1]
     for kclass in uniq_classes:
         if kclass not in header2:header2.append(kclass)
@@ -294,6 +227,7 @@ def ko_profiler():
     x.write("\n")
     for entry in table_subSystem:
         line = []
+        #line.append(str(entry))
         for value_h in header2:
             if value_h in table_subSystem[entry]:
                 value = table_subSystem[entry][value_h]
@@ -331,7 +265,7 @@ def getpathways2(id):
         pass
     else:
         url = "http://rest.kegg.jp/get/" + id
-        # print(f"retreiving {url} as {kFile}")
+        print(f"retreiving {url} as {kFile}")
         urllib.request.urlretrieve(url, kFile)
     pathwayflag=0
     pathways=[]
@@ -364,7 +298,7 @@ def getkclasses2(koID):
         pass
     else:
         url = "http://rest.kegg.jp/get/" + koID
-        # print(f"retreiving {url} as {kFile}")
+        print(f"retreiving {url} as {koFile}")
         urllib.request.urlretrieve(url, koFile)
     with open(koFile, "r") as file:
         kegg_database["Pathways"][koID]={}
@@ -391,12 +325,20 @@ def getkclasses2(koID):
                     koClass.append(i1)
     return koClass
 
+def tree_cleaner_annotations_maker():
+    tree_file=infolder+"phylophlan_out_tree/RAxML_bestTree.Rep_genomes_refined.tre"
+    command = f"sed -i 's/_rep//g' {tree_file}"
+    print(command)
+    if not dryrun: os.system(command)
 
+
+dryrun=True
 load_data()
 #geneprediction_generate()
 #run_growthpred()
 #run_kofamkoala()
 #run_checkm()
-find_genes()
-#ko_profiler()
+#find_genes()
+ko_profiler() #with microbe annotator results not kofam
+#tree_cleaner_annotations_maker()
 
